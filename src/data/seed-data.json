@@ -1,0 +1,132 @@
+{
+  "usuarios": [
+    {
+      "id": "usr_101",
+      "nombres": "Ana",
+      "apellidos": "Gómez",
+      "correo": "agomez@universidad.edu.pe",
+      "hashContrasena": "simulado_hash_123",
+      "rol": "estudiante",
+      "carrera": "Ingeniería de Sistemas",
+      "ciclo": 6,
+      "sedeAsignadaId": null,
+      "inasistenciasAcumuladas": 0,
+      "estado": "activo"
+    },
+    {
+      "id": "usr_999",
+      "nombres": "Carlos",
+      "apellidos": "Mendoza",
+      "correo": "cmendoza@universidad.edu.pe",
+      "hashContrasena": "simulado_hash_456",
+      "rol": "encargado",
+      "carrera": null,
+      "ciclo": null,
+      "sedeAsignadaId": "sede_central",
+      "inasistenciasAcumuladas": 0,
+      "estado": "activo"
+    }
+  ],
+
+  "espacios": [
+    {
+      "id": "esp_01",
+      "codigo": "LAB-102",
+      "nombre": "Laboratorio de Cómputo Avanzado",
+      "sedeId": "sede_central",
+      "pabellon": "B",
+      "piso": 1,
+      "tipo": "laboratorio",
+      "aforo": 25,
+      "descripcion": "Laboratorio equipado con estaciones de trabajo de alto rendimiento.",
+      "fotografias": [
+        "/assets/espacios/lab-102-1.jpg"
+      ],
+      "equipamiento": [
+        { "id": "eq_01", "nombre": "Computadoras i7", "cantidad": 25 },
+        { "id": "eq_02", "nombre": "Proyector HDMI", "cantidad": 1 }
+      ],
+      "horarioAtencion": [
+        {
+          "dias": ["lunes", "martes", "miercoles", "jueves", "viernes"],
+          "horaInicio": "08:00",
+          "horaFin": "22:00"
+        },
+        {
+          "dias": ["sabado"],
+          "horaInicio": "08:00",
+          "horaFin": "14:00"
+        }
+      ],
+      "duracionBloqueMinutos": 60,
+      "estado": "disponible"
+    }
+  ],
+
+  "bloquesHorarios": [
+    {
+      "id": "bloque_501",
+      "espacioId": "esp_01",
+      "fecha": "2026-10-05",
+      "horaInicio": "10:00",
+      "horaFin": "11:00",
+      "estado": "libre"
+    }
+  ],
+
+  "reservas": [
+    {
+      "id": "res_901",
+      "codigoReserva": "RES-2026-001",
+      "espacioId": "esp_01",
+      "bloqueId": "bloque_501",
+      "usuarioId": "usr_101",
+      "fecha": "2026-10-05",
+      "horaInicio": "10:00",
+      "horaFin": "11:00",
+      "motivo": "Exposición del proyecto final",
+      "numAsistentes": 4,
+      "invitados": ["estudiante2@univ.edu.pe"],
+      "estado": "CONFIRMADA",
+      "motivoCancelacion": null,
+      "operadoPorId": null,
+      "fechaCreacion": "2026-10-03T15:00:00Z"
+    }
+  ],
+
+  "bloqueos": [
+    {
+      "id": "bloq_01",
+      "espacioId": "esp_01",
+      "encargadoId": "usr_999",
+      "fechaInicio": "2026-10-10",
+      "fechaFin": "2026-10-10",
+      "horaInicio": "08:00",
+      "horaFin": "12:00",
+      "motivo": "Mantenimiento preventivo de proyectores"
+    }
+  ],
+
+  "incidencias": [
+    {
+      "id": "inc_301",
+      "espacioId": "esp_01",
+      "usuarioId": "usr_101",
+      "tipo": "equipamiento_dañado",
+      "descripcion": "El proyector HDMI no emite señal.",
+      "equipamientoAfectado": ["Proyector HDMI"],
+      "fechaHoraDeteccion": "2026-10-03T14:15:00Z",
+      "estado": "EN_ATENCION",
+      "historialComentarios": [
+        {
+          "id": "com_01",
+          "usuarioId": "usr_999",
+          "comentario": "Técnico en camino.",
+          "fecha": "2026-10-03T14:40:00Z"
+        }
+      ],
+      "solucionDescripcion": null,
+      "fechaCreacion": "2026-10-03T14:30:00Z"
+    }
+  ]
+}
