@@ -1,0 +1,240 @@
+@startuml Sistema_Reserva_Espacios_Normalizado
+
+hide circle
+skinparam linetype ortho
+
+skinparam class {
+    BackgroundColor White
+    ArrowColor #1E88E5
+    BorderColor #424242
+}
+
+' =========================================================
+' TABLAS DE CATÁLOGO / DOMINIO
+' =========================================================
+
+entity "Sede" as sede {
+    * id : INT <<PK>>
+    --
+    * nombre : VARCHAR(100) <<UNIQUE>>
+    direccion : VARCHAR(200)
+}
+
+entity "Carrera" as carrera {
+    * id : INT <<PK>>
+    --
+    * nombre : VARCHAR(100) <<UNIQUE>>
+}
+
+entity "Tipo_Espacio" as tipo_espacio {
+    * id : INT <<PK>>
+    --
+    * nombre : VARCHAR(50) <<UNIQUE>>
+}
+
+entity "Equipamiento" as equipamiento {
+    * id : INT <<PK>>
+    --
+    * nombre : VARCHAR(100) <<UNIQUE>>
+}
+
+' =========================================================
+' USUARIO (HU-1, HU-7)
+' =========================================================
+
+entity "Usuario" as usuario {
+    * id : INT <<PK>>
+    --
+    * nombres : VARCHAR(100)
+    * apellidos : VARCHAR(100)
+    * correo : VARCHAR(150) <<UNIQUE>>
+    * contrasena_hash : VARCHAR(255)
+    * rol : ENUM('ESTUDIANTE','ENCARGADO')
+    carrera_id : INT <<FK>> -- NULL si es Encargado
+    ciclo : INT -- NULL si es Encargado
+    sede_id : INT <<FK>> -- Requerido si rol = ENCARGADO (HU-1)
+    inasistencias_acumuladas : INT -- Para control de umbral (HU-7)
+    * fecha_registro : DATETIME
+}
+
+' =========================================================
+' UBICACIÓN FÍSICA
+' =========================================================
+
+entity "Pabellon" as pabellon {
+    * id : INT <<PK>>
+    --
+    * sede_id : INT <<FK>>
+    * nombre : VARCHAR(50)
+}
+
+' =========================================================
+' ESPACIO (HU-2)
+' =========================================================
+
+entity "Espacio" as espacio {
+    * id : INT <<PK>>
+    --
+    * codigo : VARCHAR(20) <<UNIQUE>>
+    * nombre : VARCHAR(100)
+    * pabellon_id : INT <<FK>>
+    * piso : INT
+    * tipo_id : INT <<FK>>
+    * aforo : INT
+    descripcion : TEXT
+    * estado : ENUM('DISPONIBLE','MANTENIMIENTO','BAJA')
+    * duracion_bloque_min : INT
+}
+
+' =========================================================
+' HORARIOS DEL ESPACIO (HU-2)
+' =========================================================
+
+entity "Horario_Espacio" as horario {
+    * id : INT <<PK>>
+    --
+    * espacio_id : INT <<FK>>
+    * dia_semana : ENUM('LUNES','MARTES','MIERCOLES','JUEVES','VIERNES','SABADO','DOMINGO')
+    * hora_inicio : TIME
+    * hora_fin : TIME
+    --
+    UNIQUE (espacio_id, dia_semana)
+}
+
+' =========================================================
+' FOTOGRAFÍAS (HU-2)
+' =========================================================
+
+entity "Fotografia_Espacio" as fotografia {
+    * id : INT <<PK>>
+    --
+    * espacio_id : INT <<FK>>
+    * url : VARCHAR(500)
+    descripcion : VARCHAR(200)
+}
+
+' =========================================================
+' EQUIPAMIENTO DE LOS ESPACIOS (HU-2)
+' =========================================================
+
+entity "Espacio_Equipamiento" as espacio_equipamiento {
+    * espacio_id : INT <<PK, FK>>
+    * equipamiento_id : INT <<PK, FK>>
+    * cantidad : INT
+}
+
+' =========================================================
+' RESERVA (HU-4, HU-5)
+' =========================================================
+
+entity "Reserva" as reserva {
+    * id : INT <<PK>>
+    --
+    * codigo : VARCHAR(20) <<UNIQUE>>
+    * espacio_id : INT <<FK>>
+    * usuario_id : INT <<FK>> -- Alumno que reserva
+    * fecha : DATE
+    * hora_inicio : TIME
+    * hora_fin : TIME
+    * motivo : TEXT
+    * num_asistentes : INT
+    * estado : ENUM('CONFIRMADA','COMPLETADA','CANCELADA_USUARIO','CANCELADA_ENCARGADO','INASISTENCIA')
+    motivo_cancelacion : TEXT
+    cancelado_por_id : INT <<FK>> -- Auditoría: ID del usuario que canceló (HU-5)
+    fecha_registro : DATETIME
+    --
+    INDEX idx_reserva_calendario (espacio_id, fecha, estado)
+}
+
+' =========================================================
+' INVITADOS DE UNA RESERVA (HU-4)
+' =========================================================
+
+entity "Reserva_Invitado" as reserva_invitado {
+    * id : INT <<PK>>
+    --
+    * reserva_id : INT <<FK>>
+    * correo : VARCHAR(150) -- Alineado al JSON original de la universidad
+}
+
+' =========================================================
+' BLOQUEOS / MANTENIMIENTO (HU-5)
+' =========================================================
+
+entity "Bloqueo_Mantenimiento" as bloqueo {
+    * id : INT <<PK>>
+    --
+    * espacio_id : INT <<FK>>
+    * encargado_id : INT <<FK>>
+    * fecha_inicio : DATE
+    * fecha_fin : DATE
+    * hora_inicio : TIME
+    * hora_fin : TIME
+    * motivo : TEXT
+}
+
+' =========================================================
+' INCIDENCIA (HU-6)
+' =========================================================
+
+entity "Incidencia" as incidencia {
+    * id : INT <<PK>>
+    --
+    * codigo : VARCHAR(20) <<UNIQUE>>
+    * espacio_id : INT <<FK>>
+    * reportante_id : INT <<FK>>
+    encargado_id : INT <<FK>>
+    * tipo : VARCHAR(50)
+    * descripcion : TEXT
+    * fecha_deteccion : DATETIME
+    * estado : ENUM('RECIBIDA','EN_ATENCION','RESUELTA','DESESTIMADA')
+    comentario_solucion : TEXT
+    fecha_resolucion : DATETIME
+}
+
+' =========================================================
+' EQUIPAMIENTO AFECTADO EN UNA INCIDENCIA (HU-6)
+' =========================================================
+
+entity "Incidencia_Equipamiento" as incidencia_equipamiento {
+    * incidencia_id : INT <<PK, FK>>
+    * equipamiento_id : INT <<PK, FK>>
+    cantidad_afectada : INT
+    descripcion : TEXT
+}
+
+' =========================================================
+' RELACIONES
+' =========================================================
+
+sede ||--o{ usuario : "tiene"
+carrera ||--o{ usuario : "corresponde"
+
+sede ||--|{ pabellon : "contiene"
+pabellon ||--o{ espacio : "contiene"
+
+tipo_espacio ||--o{ espacio : "clasifica"
+
+espacio ||--o{ horario : "define"
+espacio ||--o{ fotografia : "posee"
+
+espacio ||--o{ espacio_equipamiento : "posee"
+equipamiento ||--o{ espacio_equipamiento : "asignado"
+
+usuario ||--o{ reserva : "realiza"
+espacio ||--o{ reserva : "alberga"
+usuario ||--o{ reserva : "cancela"
+
+reserva ||--o{ reserva_invitado : "incluye"
+
+espacio ||--o{ bloqueo : "tiene"
+usuario ||--o{ bloqueo : "registra"
+
+espacio ||--o{ incidencia : "presenta"
+usuario ||--o{ incidencia : "reporta"
+usuario ||--o{ incidencia : "atiende"
+
+incidencia ||--o{ incidencia_equipamiento : "afecta"
+equipamiento ||--o{ incidencia_equipamiento : "involucrado"
+
+@enduml
